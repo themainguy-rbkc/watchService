@@ -16,7 +16,7 @@ def main():
     st.sidebar.header('Filters')
     selected_report = st.sidebar.multiselect(
         'Select Reports', 
-        df['ReportName'].unique()2
+        df['ReportName'].unique()
     )
     
     # Filtered dataframe

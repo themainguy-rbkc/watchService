@@ -2,3 +2,7 @@ schedule
 pyodbc
 streamlit
 streamlit_extras
+pandas
+python-dotenv
+sqlalchemy
+plotly
