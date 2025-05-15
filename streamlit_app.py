@@ -24,8 +24,10 @@ import os
 from sqlalchemy import create_engine,text
 from sqlalchemy.exc import SQLAlchemyError
 import plotly.express as px
+import nest_asyncio
 
 
+nest_asyncio.apply()
 
 load_dotenv()
 

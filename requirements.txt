@@ -6,3 +6,4 @@ pandas
 python-dotenv
 sqlalchemy
 plotly
+nest-asyncio
