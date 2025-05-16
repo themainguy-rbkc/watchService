@@ -21,8 +21,9 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import pyodbc
 import os
-from sqlalchemy import create_engine,text
+from sqlalchemy import create_engine,text, event
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.pool import QueuePool
 import plotly.express as px
 import nest_asyncio
 
@@ -39,7 +40,43 @@ database = os.getenv("DATABASE", "ReportServer")
 connection_timeout = 60
 
 # Creating connection string
-conn_str = f"mssql+pyodbc://{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server&Trusted_Connection=yes&timeout={connection_timeout}"
+conn_str = f"mssql+pyodbc://{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes&timeout={connection_timeout}"
+
+engine = create_engine(
+    conn_str,
+    pool_size=5,               # Start with 5 connections in the pool
+    max_overflow=10,           # Allow up to 10 overflow connections
+    pool_timeout=30,           # Wait up to 30 seconds for a connection from the pool
+    pool_recycle=3600,         # Recycle connections after 1 hour
+    pool_pre_ping=True,        # Verify connections before using them
+    poolclass=QueuePool,       # Use QueuePool for better connection management
+    connect_args={
+        'timeout': connection_timeout,
+        # Add other ODBC connection arguments here if needed
+    }
+)
+
+# Add event listeners to help diagnose connection issues
+@event.listens_for(engine, 'connect')
+def receive_connect(dbapi_connection, connection_record):
+    print("Successfully connected to database!")
+
+@event.listens_for(engine, 'checkout')
+def receive_checkout(dbapi_connection, connection_record, connection_proxy):
+    print("Connection checked out from pool")
+
+@event.listens_for(engine, 'checkin')
+def receive_checkin(dbapi_connection, connection_record):
+    print("Connection checked in to pool")
+
+# Test the connection
+try:
+    with engine.connect() as connection:
+        result = connection.execute("SELECT @@VERSION")
+        version = result.scalar()
+        print(f"Connected successfully! SQL Server version: {version}")
+except Exception as e:
+    print(f"Connection failed: {e}")
 
 if 'night_mode' not in st.session_state:
     st.session_state.night_mode = False
