@@ -33,14 +33,13 @@ load_dotenv()
 
 server = os.getenv("SERVER", "localhost")
 database = os.getenv("DATABASE", "ReportServer")
-username = os.getenv("USERNAME", "")
-password = os.getenv("PASSWORD", "")
+
 
 # Configure connection timeout
 connection_timeout = 60
 
 # Creating connection string
-conn_str = f"mssql+pyodbc://{username}:{password}@{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server&Trusted_Connection=yes&timeout={connection_timeout}"
+conn_str = f"mssql+pyodbc://{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server&Trusted_Connection=yes&timeout={connection_timeout}"
 
 if 'night_mode' not in st.session_state:
     st.session_state.night_mode = False
