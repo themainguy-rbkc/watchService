@@ -31,13 +31,16 @@ nest_asyncio.apply()
 
 load_dotenv()
 
-server = os.getenv("SERVER")
-database = os.getenv("DATABASE")
-username = os.getenv("USERNAME")
-password = os.getenv("PASSWORD")
+server = os.getenv("SERVER", "localhost")
+database = os.getenv("DATABASE", "ReportServer")
+username = os.getenv("USERNAME", "")
+password = os.getenv("PASSWORD", "")
+
+# Configure connection timeout
+connection_timeout = 60
 
 # Creating connection string
-conn_str = f"mssql+pyodbc://{username}:{password}@{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server&Trusted_Connection=yes"
+conn_str = f"mssql+pyodbc://{username}:{password}@{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server&Trusted_Connection=yes&timeout={connection_timeout}"
 
 if 'night_mode' not in st.session_state:
     st.session_state.night_mode = False
@@ -48,7 +51,7 @@ def toggle_night_mode():
 class SSRSReportMonitor:
     def __init__(self, conn_str):
         try:
-            self.engine = create_engine(conn_str, pool_pre_ping=True)
+            self.engine = create_engine(conn_str, pool_pre_ping=True,pool_recycle=3600,connect_args={'timeout': connection_timeout})
             self.run_times = []
             print("Connection Successful")
         except SQLAlchemyError as e:
